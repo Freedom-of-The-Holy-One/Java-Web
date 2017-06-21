@@ -1,0 +1,20 @@
+﻿import java.sql.Connection;
+import java.sql.DriverManager;
+
+public class Connect {
+	
+    private Connection mConnection;
+    private common mCommon; //数据库参数配置
+	
+    public Connection Connect_DataBase() {
+	   
+	try {
+		Class.forName(mCommon.DRIVER);
+		mConnection=DriverManager.getConnection(mCommon.url,mCommon.user_name,mCommon.password);
+		return mConnection;
+	} catch (Exception e) {
+		e.printStackTrace();
+		return null;
+	}
+  }
+}
