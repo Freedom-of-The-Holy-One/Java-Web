@@ -1,0 +1,133 @@
+﻿import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+public class FileUpLoad extends HttpServlet{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	 private static final int MEMORY_THRESHOLD   = 1024 * 1024 * 5;  // 5MB
+	 private static final int MAX_FILE_SIZE      = 1024 * 1024 * 20; // 20MB
+
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		doPost(req, resp);
+	}
+
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		
+		req.setCharacterEncoding("utf-8");
+		resp.setCharacterEncoding("utf-8");
+		//创建文件项目工厂对象
+		DiskFileItemFactory  factory=new DiskFileItemFactory();
+		//设置缓冲区大小
+		factory.setSizeThreshold(MEMORY_THRESHOLD);
+		//设置系统临时存储路径
+		factory.setRepository(new File(System.getProperty("java.io.tmpdir")));
+		//解析文件
+		ServletFileUpload servletFileUpload=new ServletFileUpload(factory);
+		servletFileUpload.setFileSizeMax(MAX_FILE_SIZE);
+		
+		servletFileUpload.setHeaderEncoding("utf-8");
+		
+		System.out.println("isMultipartContent:"+servletFileUpload.isMultipartContent(req));
+		
+		System.out.println("Content-Type"+req.getContentType());
+		
+		String Root_Path=getServletContext().getRealPath("./")+File.separator+"UpLoad";
+		//如何文件夹不存在则创建文件夹
+		File mFile1=new File(Root_Path);
+		if(!mFile1.exists()){
+			mFile1.mkdirs();
+		}
+		
+		try {
+			
+			 List<FileItem> mFileItems = servletFileUpload.parseRequest(req);
+			
+			if (mFileItems != null && mFileItems.size() > 0) {
+			  for(FileItem item:mFileItems){
+//				  System.out.println("item:"+item);
+//				  System.out.println("Field:"+item.getFieldName());
+				  //处理上传字段
+				  if(item.isFormField()){
+					  System.out.println("Field"+item.getFieldName());
+					  System.out.println("Field-value:"+item.getString("UTF-8"));
+				  }
+				  //处理上传文件
+				  else {
+					String file_name=item.getName();
+					InputStream inputStream=item.getInputStream();
+					//设置文件存储路径
+					//String uploadPath = getServletContext().getRealPath("./") + File.separator + UPLOAD_DIRECTORY;
+					String up_load_path=Root_Path+File.separator+file_name;
+					//新建文件夹
+					File mFile=new File(up_load_path);
+					//读取文件
+					BufferedInputStream mBufferedInputStream=new BufferedInputStream(inputStream);
+					//创建写入文件
+					FileOutputStream mFileOutputStream=new FileOutputStream(mFile);
+					//写入文件
+					int f;
+					while((f=mBufferedInputStream.read())!=-1){
+						mFileOutputStream.write(f);
+					}
+					
+					mFileOutputStream.flush();
+					mFileOutputStream.close();
+					mBufferedInputStream.close();
+					inputStream.close();
+					
+					System.out.println("文件读取成功！");
+					System.out.println("文件存储路径为："+up_load_path);
+				}
+				  /**第一条记录
+				   * name=one.jpg, 
+				   * StoreLocation=/tmp/upload_7addc5d6_a6cb_4587_bfe8_2a990f904193_00000001.tmp, 
+				   * size=182207 bytes, 
+				   * isFormField=false, 
+				   * FieldName=Img
+				   * 第二条记录
+				   * name=1 (1).jpg, 
+				   * StoreLocation=/tmp/upload_7addc5d6_a6cb_4587_bfe8_2a990f904193_00000002.tmp, 
+				   * size=380080 bytes, 
+				   * isFormField=false, 
+				   * FieldName=Content-Type
+				   * 第三条记录
+				   * name=null, 
+				   * StoreLocation=/tmp/upload_7addc5d6_a6cb_4587_bfe8_2a990f904193_00000008.tmp, 
+				   * size=18 bytes, 
+				   * isFormField=true, 
+				   * FieldName=字段测试
+				   * 
+				   * Postman测试字段
+				   * “enctype="multipart/form-data"”设置此属性
+           
+*/
+				  //可以根据IsFormField判断是文件还是字段
+				  //根据FieldName判断文件的类型或者具体字段
+			  }
+				}
+		} catch (FileUploadException e) {
+			e.printStackTrace();
+		}
+	}
+
+}
