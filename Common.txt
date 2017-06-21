@@ -1,8 +1,0 @@
-public class Common {
-	
-   static final String url="jdbc:mysql://localhost:3306/Tea?useUnicode=true&characterEncoding=utf-8";
-   static final String DRIVER="com.mysql.jdbc.Driver";
-   static final String user_name="";
-   static final String password="";
-  
-}
